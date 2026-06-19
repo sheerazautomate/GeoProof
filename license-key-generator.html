@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeoProof — License Key Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 560px;
+    }
+    .logo { font-size: 48px; text-align: center; margin-bottom: 8px; }
+    h1 {
+      text-align: center;
+      font-size: 26px;
+      font-weight: 800;
+      color: #38bdf8;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    input, textarea {
+      width: 100%;
+      background: #0f172a;
+      border: 1.5px solid #334155;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 15px;
+      color: #e2e8f0;
+      font-family: 'Courier New', monospace;
+      margin-bottom: 20px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus { border-color: #38bdf8; }
+    input[type="password"] { letter-spacing: 3px; }
+    .generate-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #0d6e6e, #38bdf8);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: opacity 0.2s;
+    }
+    .generate-btn:hover { opacity: 0.9; }
+    .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result-box {
+      margin-top: 28px;
+      background: #0f172a;
+      border: 1.5px solid #10b981;
+      border-radius: 12px;
+      padding: 20px;
+      display: none;
+    }
+    .result-box.show { display: block; }
+    .result-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #10b981;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .key-text {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      word-break: break-all;
+      color: #f0fdf4;
+      line-height: 1.6;
+      user-select: all;
+    }
+    .copy-btn {
+      margin-top: 14px;
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: #059669; }
+    .copied { background: #059669; }
+
+    .history {
+      margin-top: 32px;
+      border-top: 1px solid #334155;
+      padding-top: 24px;
+    }
+    .history h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .history-item {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      color: #94a3b8;
+    }
+    .history-item strong { color: #e2e8f0; display: block; margin-bottom: 4px; }
+    .clear-history {
+      background: none;
+      border: 1px solid #475569;
+      color: #94a3b8;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .warning {
+      background: #422006;
+      border: 1px solid #92400e;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #fde68a;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">📍</div>
+  <h1>GeoProof</h1>
+  <p class="subtitle">License Key Generator · Private Tool</p>
+
+  <div class="warning">
+    ⚠️ <strong>Keep this file private.</strong> Never share your salt or this
+    tool with anyone. Store this HTML file offline on your local machine only.
+  </div>
+
+  <!-- Salt input -->
+  <label>Secret Salt (from your app's config.ts)</label>
+  <input
+    type="password"
+    id="saltInput"
+    placeholder="Enter your private salt string"
+    autocomplete="off"
+    spellcheck="false"
+  />
+
+  <!-- Device ID input -->
+  <label>Buyer's Android Device ID</label>
+  <input
+    type="text"
+    id="deviceInput"
+    placeholder="Paste device ID here"
+    autocomplete="off"
+    spellcheck="false"
+  />
+
+  <!-- Optional buyer name for history -->
+  <label>Buyer Name / Note (optional)</label>
+  <input
+    type="text"
+    id="buyerInput"
+    placeholder="e.g. Ahmed, Lahore"
+    autocomplete="off"
+  />
+
+  <button class="generate-btn" onclick="generateKey()">
+    ⚡ Generate License Key
+  </button>
+
+  <!-- Result -->
+  <div class="result-box" id="resultBox">
+    <div class="result-label">License Key</div>
+    <div class="key-text" id="keyOutput"></div>
+    <button class="copy-btn" id="copyBtn" onclick="copyKey()">
+      📋 Copy Key
+    </button>
+  </div>
+
+  <!-- History -->
+  <div class="history" id="historySection" style="display:none">
+    <h3>Generated Keys This Session</h3>
+    <div id="historyList"></div>
+    <button class="clear-history" onclick="clearHistory()">Clear History</button>
+  </div>
+</div>
+
+<script>
+  // ── SHA-256 using Web Crypto API (works offline in any modern browser) ──
+  async function sha256(message) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  const history = [];
+
+  async function generateKey() {
+    const salt = document.getElementById('saltInput').value.trim();
+    const deviceId = document.getElementById('deviceInput').value.trim();
+    const buyer = document.getElementById('buyerInput').value.trim();
+
+    if (!salt) {
+      alert('Please enter your secret salt.');
+      return;
+    }
+    if (!deviceId) {
+      alert('Please enter the buyer\'s Device ID.');
+      return;
+    }
+
+    const btn = document.querySelector('.generate-btn');
+    btn.disabled = true;
+    btn.textContent = 'Generating…';
+
+    try {
+      const key = await sha256(deviceId + salt);
+
+      // Show result
+      document.getElementById('keyOutput').textContent = key;
+      document.getElementById('resultBox').classList.add('show');
+
+      // Add to session history
+      const entry = {
+        buyer: buyer || 'Unknown',
+        deviceId: deviceId.slice(0, 12) + '…',
+        key,
+        time: new Date().toLocaleTimeString(),
+      };
+      history.unshift(entry);
+      renderHistory();
+    } catch (e) {
+      alert('Error generating key: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⚡ Generate License Key';
+    }
+  }
+
+  function copyKey() {
+    const key = document.getElementById('keyOutput').textContent;
+    navigator.clipboard.writeText(key).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '✅ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '📋 Copy Key';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  function renderHistory() {
+    const section = document.getElementById('historySection');
+    const list = document.getElementById('historyList');
+    section.style.display = history.length ? 'block' : 'none';
+    list.innerHTML = history
+      .map(
+        h => `
+      <div class="history-item">
+        <strong>${h.buyer} · ${h.time}</strong>
+        Device: ${h.deviceId}<br/>
+        Key: ${h.key.slice(0, 32)}…
+      </div>
+    `,
+      )
+      .join('');
+  }
+
+  function clearHistory() {
+    history.length = 0;
+    renderHistory();
+  }
+
+  // Allow Enter key to trigger generation
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') generateKey();
+  });
+</script>
+</body>
+</html>
