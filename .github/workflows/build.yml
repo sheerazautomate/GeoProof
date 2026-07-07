@@ -42,10 +42,12 @@ jobs:
       #   it directly here to see the actual failure. Remove once diagnosed.
       - name: Debug react-native config
         run: |
+          set +e
           node node_modules/.bin/react-native config > /tmp/config.json 2> /tmp/config.err
           echo "exit=$?"
           echo "--- stdout (last 40 lines) ---"; tail -n 40 /tmp/config.json
           echo "--- stderr ---"; cat /tmp/config.err
+          set -e
 
       # ── 6. Decode keystore from Base64 secret ─────────────────────────────
       #   In GitHub repo → Settings → Secrets → Actions, add:
