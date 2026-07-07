@@ -1,6 +1,12 @@
 pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
 plugins { id("com.facebook.react.settings") }
-extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
+extensions.configure(com.facebook.react.ReactSettingsExtension){ ex ->
+  // Pinned to the locally installed CLI binary instead of the default `npx
+  // @react-native-community/cli config`. In CI, npx's registry resolution is
+  // unreliable and can return output missing `project.android.packageName`,
+  // failing the :app:generateAutolinkingPackageList task.
+  ex.autolinkLibrariesFromCommand(["node", "node_modules/.bin/react-native", "config"])
+}
 rootProject.name = 'GeoProof'
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
