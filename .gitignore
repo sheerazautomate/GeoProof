@@ -34,7 +34,10 @@ local.properties
 *.keystore
 !debug.keystore
 *.jks
+*.jks.old-unrecoverable
 keystore-base64.txt
+keystore-base64.txt.old-unrecoverable
+RELEASE_KEYSTORE_CREDENTIALS.txt
 .kotlin/
 
 # node.js
