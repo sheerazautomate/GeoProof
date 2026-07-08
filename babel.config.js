@@ -4,5 +4,8 @@ module.exports = {
   plugins: [
     // Required for react-native-quick-crypto
     'module:react-native-quick-crypto/babel',
+    // Required for react-native-reanimated v4 (worklets transform moved to
+    // its own package). Must stay last in this list.
+    'react-native-worklets/plugin',
   ],
 };
