@@ -37,26 +37,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # ── 5b. TEMP DEBUG: surface the real autolinking error ─────────────────
-      #   Gradle's exec wrapper swallows stderr from this command, so we run
-      #   it directly here to see the actual failure. Remove once diagnosed.
-      - name: Debug react-native config
-        run: |
-          set +e
-          echo "pwd: $(pwd)"
-          node --version
-          which node
-          ls -la node_modules/.bin/react-native
-          ls -la node_modules/react-native/cli.js
-          touch /tmp/writetest && echo "tmp writable: yes" || echo "tmp writable: no"
-          node node_modules/.bin/react-native config > /tmp/config.json 2> /tmp/config.err
-          echo "exit=$?"
-          echo "stdout bytes: $(wc -c < /tmp/config.json)"
-          echo "stderr bytes: $(wc -c < /tmp/config.err)"
-          echo "--- stdout (last 40 lines) ---"; tail -n 40 /tmp/config.json
-          echo "--- stderr ---"; cat /tmp/config.err
-          set -e
-
       # ── 6. Decode keystore from Base64 secret ─────────────────────────────
       #   In GitHub repo → Settings → Secrets → Actions, add:
       #     KEYSTORE_BASE64   : base64-encoded .jks keystore file
