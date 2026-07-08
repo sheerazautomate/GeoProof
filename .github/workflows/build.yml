@@ -37,6 +37,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # ── 5b. Cache Gradle/NDK build outputs ─────────────────────────────────
+      #   Speeds up repeated CI runs (native compiles for vision-camera,
+      #   quick-crypto, skia etc. are the slow part). No effect on a cold
+      #   cache but saves significant time on every run after the first.
+      - name: Cache Gradle & native build outputs
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            android/.gradle
+            android/app/.cxx
+          key: gradle-${{ runner.os }}-${{ hashFiles('package-lock.json', 'android/gradle/wrapper/gradle-wrapper.properties', 'android/build.gradle', 'android/app/build.gradle') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
       # ── 6. Decode keystore from Base64 secret ─────────────────────────────
       #   In GitHub repo → Settings → Secrets → Actions, add:
       #     KEYSTORE_BASE64   : base64-encoded .jks keystore file
@@ -58,9 +74,12 @@ jobs:
           EOF
 
       # ── 8. Build release APK ──────────────────────────────────────────────
+      #   Restricted to arm64-v8a + armeabi-v7a: covers virtually all real
+      #   Android devices and roughly halves native compile time vs. also
+      #   building the two emulator-only ABIs (x86, x86_64).
       - name: Build signed APK
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,armeabi-v7a
 
       # ── 9. Upload APK artifact ────────────────────────────────────────────
       - name: Upload APK
