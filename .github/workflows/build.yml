@@ -63,6 +63,21 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/geoproof-release.jks
 
+      # ── 6b. Verify signing secrets before the expensive build ─────────────
+      #   Fails in seconds instead of ~45 minutes if KEY_ALIAS / STORE_PASSWORD /
+      #   KEY_PASSWORD don't match the keystore. -certreq unlocks the private
+      #   key (via -keypass), so it catches a wrong key password too, not just
+      #   a wrong store password.
+      - name: Verify keystore credentials
+        run: |
+          keytool -certreq \
+            -alias "${{ secrets.KEY_ALIAS }}" \
+            -keystore android/app/geoproof-release.jks \
+            -storepass "${{ secrets.STORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            -file /dev/null \
+          || { echo "::error::Keystore/key/alias/password secrets do not match android/app/geoproof-release.jks. Check KEY_ALIAS, STORE_PASSWORD, KEY_PASSWORD."; exit 1; }
+
       # ── 7. Write signing config to gradle.properties ──────────────────────
       - name: Write signing properties
         run: |
