@@ -1,5 +1,6 @@
 // src/utils/imageProcessor.ts
 import {Skia, ImageFormat} from '@shopify/react-native-skia';
+import {fromByteArray} from 'react-native-quick-base64';
 import RNFS from 'react-native-fs';
 import {WatermarkData, WatermarkSettings} from '../types';
 import {IMAGE_QUALITY, IMAGE_MAX_DIMENSION} from '../constants/config';
@@ -109,8 +110,11 @@ export async function processImageWithWatermark(
 
   // ── 7. Encode & write ─────────────────────────────────────────────────────
   const snapshot = surface.makeImageSnapshot();
-  const encoded = snapshot.encodeToBase64(ImageFormat.JPEG, Math.round(IMAGE_QUALITY * 100));
-  if (!encoded) throw new Error('Failed to encode image');
+  // Use encodeToBytes() + fromByteArray() per AGENTS.md:
+  // encodeToBytes returns Uint8Array; RNFS.writeFile needs a base64 string.
+  const bytes = snapshot.encodeToBytes(ImageFormat.JPEG, Math.round(IMAGE_QUALITY * 100));
+  if (!bytes) throw new Error('Failed to encode image');
+  const encoded = fromByteArray(bytes);
 
   const dir = `${RNFS.PicturesDirectoryPath}/GeoProof`;
   await RNFS.mkdir(dir);

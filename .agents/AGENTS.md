@@ -18,3 +18,7 @@ This file contains technical notes, project-specific rules, and bug-fix memories
 
 ## UI & Layout
 - **Modals on Android**: Modals with `presentationStyle="pageSheet"` on Android can overlay the system status bar. Always wrap the inner content in a `<SafeAreaView>` (from `react-native-safe-area-context`) to prevent buttons or headers from being hidden under the notch/status bar.
+
+## TextInput / Keyboard Bugs
+- **Keyboard dismisses after one character**: This happens when `TextInput` is inside an inner function component (e.g., `const Row = ({...}) => ...`) defined *inside* the parent component body. Every state change causes the parent to re-render, which recreates the inner component as a new function reference, causing React to unmount/remount the `TextInput` and dismiss the keyboard.
+- **Fix**: Move all sub-components that contain `TextInput` **outside** the parent component (module-level), or use `React.memo()` on a stable module-level component. Pass `colors` and handlers as props. Also add `keyboardShouldPersistTaps="handled"` to any `ScrollView` wrapping the form.
