@@ -13,6 +13,7 @@ import {
   Camera,
   useCameraDevices,
   useCameraPermission,
+  usePhotoOutput,
 } from 'react-native-vision-camera';
 import {useTheme} from '../context/ThemeContext';
 import {useSettings} from '../context/SettingsContext';
@@ -31,9 +32,11 @@ export function CameraScreen() {
   const {colors} = useTheme();
   const {settings} = useSettings();
   const {hasPermission, requestPermission} = useCameraPermission();
+  const [isFront, setIsFront] = useState(false);
   const devices = useCameraDevices();
-  const device = devices.find(d => d.position === 'back');
+  const device = devices.find(d => d.position === (isFront ? 'front' : 'back'));
   const cameraRef = useRef<Camera>(null);
+  const photoOutput = usePhotoOutput();
 
   const {coordinates, status: gpsStatus} = useGPS();
   const {address, isOnline} = useReverseGeo(
@@ -41,7 +44,6 @@ export function CameraScreen() {
     settings.addressLookupEnabled,
   );
 
-  const [isFront, setIsFront] = useState(false);
   const [flash, setFlash] = useState<'off' | 'on'>('off');
   const [isCapturing, setIsCapturing] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -59,14 +61,17 @@ export function CameraScreen() {
   }), [coordinates, address, isOnline, customLabel]);
 
   const handleCapture = useCallback(async () => {
-    if (!cameraRef.current || isCapturing) return;
+    if (!photoOutput || isCapturing) return;
     setIsCapturing(true);
     try {
-      const photo = await cameraRef.current.takePhoto({
-        flash,
+      const photo = await photoOutput.capturePhoto({
+        flashMode: flash,
         enableShutterSound: true,
-      });
-      const uri = `file://${photo.path}`;
+      }, {});
+      const path = await photo.saveToTemporaryFileAsync();
+      const uri = `file://${path}`;
+      photo.dispose();
+      
       const wmData = buildWatermarkData();
       setPendingPhoto(uri);
       setEditableWatermark(wmData);
@@ -76,7 +81,7 @@ export function CameraScreen() {
     } finally {
       setIsCapturing(false);
     }
-  }, [cameraRef, isCapturing, flash, buildWatermarkData]);
+  }, [photoOutput, isCapturing, flash, buildWatermarkData]);
 
   const handleSavePhoto = useCallback(
     async (wmData: WatermarkData, wmSettings: typeof settings.watermark) => {
@@ -179,8 +184,9 @@ export function CameraScreen() {
         device={device}
         isActive={!showEditModal && !showTagModal}
         photo
+        outputs={[photoOutput]}
         enableZoomGesture
-        torch={flash === 'on' ? 'on' : 'off'}
+        torchMode={flash === 'on' ? 'on' : 'off'}
       />
 
       {/* GPS status overlay */}

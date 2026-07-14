@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm view *)",
+      "Bash(curl -sI *)",
+      "Bash(keytool -list *)",
+      "Bash(keytool -certreq *)",
+      "Bash(npm ci)",
+      "Bash(npm install)",
+      "Bash(npm run android)",
+      "Bash(npm run android-release)",
+      "Bash(npm run start)",
+      "Bash(npm run clean)",
+      "Bash(git add *)",
+      "Bash(git commit -m *)",
+      "Bash(./gradlew *)",
+      "Bash(gh workflow run *)",
+      "Bash(python3 *)",
+      "Bash(node -e *)",
+      "Bash(npx *)",
+      "Bash(git push *)"
+    ]
+  }
+}

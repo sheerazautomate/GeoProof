@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Switch,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
 import {WatermarkData, WatermarkSettings} from '../types';
 import {FontSizes, FontWeights} from '../constants/fonts';
@@ -115,7 +116,7 @@ export function CoordEditModal({
       animationType="slide"
       presentationStyle="pageSheet"
       onRequestClose={onCancel}>
-      <View style={s.root}>
+      <SafeAreaView style={s.root} edges={['top', 'bottom']}>
         <View style={s.header}>
           <TouchableOpacity onPress={onCancel}>
             <Text style={s.headerCancel}>Cancel</Text>
@@ -201,7 +202,7 @@ export function CoordEditModal({
             />
           </View>
         </ScrollView>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
