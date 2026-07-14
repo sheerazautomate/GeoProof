@@ -5,7 +5,6 @@ import {WatermarkData, WatermarkSettings} from '../types';
 import {IMAGE_QUALITY, IMAGE_MAX_DIMENSION} from '../constants/config';
 import {buildWatermarkLines, getWatermarkOrigin, getWatermarkColors} from './watermarkBuilder';
 import {WatermarkFontPx} from '../constants/fonts';
-import {fromByteArray} from 'react-native-quick-base64';
 
 export interface ProcessResult {
   uri: string;
@@ -110,7 +109,7 @@ export async function processImageWithWatermark(
 
   // ── 7. Encode & write ─────────────────────────────────────────────────────
   const snapshot = surface.makeImageSnapshot();
-  const encoded = snapshot.encodeToBytes(ImageFormat.JPEG, Math.round(IMAGE_QUALITY * 100));
+  const encoded = snapshot.encodeToBase64(ImageFormat.JPEG, Math.round(IMAGE_QUALITY * 100));
   if (!encoded) throw new Error('Failed to encode image');
 
   const dir = `${RNFS.PicturesDirectoryPath}/GeoProof`;
@@ -118,8 +117,7 @@ export async function processImageWithWatermark(
   const fileName = `GeoProof_${Date.now()}.jpg`;
   const outPath = `${dir}/${fileName}`;
 
-  const base64String = fromByteArray(encoded);
-  await RNFS.writeFile(outPath, base64String, 'base64');
+  await RNFS.writeFile(outPath, encoded, 'base64');
 
   const stat = await RNFS.stat(outPath);
 

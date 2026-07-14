@@ -136,14 +136,14 @@ export function UploadScreen() {
               style={[
                 s.gpsPill,
                 {
-                  backgroundColor: coordinates
+                  backgroundColor: watermarkData?.coordinates
                     ? colors.primarySurface
                     : colors.surfaceElevated,
                 },
               ]}>
               <Text style={s.gpsPillText}>
-                {coordinates
-                  ? `📍 ${coordinates.latitude.toFixed(5)}, ${coordinates.longitude.toFixed(5)}`
+                {watermarkData?.coordinates
+                  ? `📍 ${watermarkData.coordinates.latitude.toFixed(5)}, ${watermarkData.coordinates.longitude.toFixed(5)}`
                   : '⚠️  No GPS — coords will be Null'}
               </Text>
             </View>

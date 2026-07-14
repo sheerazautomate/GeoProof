@@ -10,6 +10,7 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../context/ThemeContext';
 import {useSettings} from '../context/SettingsContext';
 import {SavedTag, GPSCoordinates} from '../types';
@@ -76,7 +77,7 @@ export function TagPickerModal({visible, onSelect, onClose, currentCoords}: Prop
       animationType="slide"
       presentationStyle="pageSheet"
       onRequestClose={onClose}>
-      <View style={s.root}>
+      <SafeAreaView style={s.root} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={s.header}>
           <Text style={s.headerTitle}>Saved Tags</Text>
@@ -173,7 +174,7 @@ export function TagPickerModal({visible, onSelect, onClose, currentCoords}: Prop
           )}
         />
         <Text style={s.hint}>Long-press a tag to delete it.</Text>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
