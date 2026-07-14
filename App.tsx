@@ -1,6 +1,7 @@
 // App.tsx
 import React from 'react';
 import {StatusBar} from 'react-native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {ThemeProvider, useTheme} from './src/context/ThemeContext';
 import {SettingsProvider} from './src/context/SettingsContext';
 import {LicenseGuard} from './src/components/LicenseGuard';
@@ -23,10 +24,12 @@ function Root() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <SettingsProvider>
-        <Root />
-      </SettingsProvider>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <SettingsProvider>
+          <Root />
+        </SettingsProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
