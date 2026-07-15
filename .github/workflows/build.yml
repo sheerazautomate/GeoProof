@@ -15,6 +15,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # ── 1b. Free disk space ────────────────────────────────────────────────
+      #   ubuntu-latest runners start with ~25 GB free. A cold Gradle + NDK
+      #   build (Skia, vision-camera, quick-crypto) can consume nearly all of
+      #   it, crashing the runner with "No space left on device".
+      #   Removing unused pre-installed software frees ~14–18 GB upfront.
+      - name: Free disk space
+        run: |
+          echo "Disk before cleanup:"
+          df -h /
+          sudo rm -rf \
+            /usr/share/dotnet \
+            /usr/local/lib/android/sdk/emulator \
+            /usr/local/lib/android/sdk/system-images \
+            /opt/ghc \
+            /opt/hostedtoolcache/CodeQL \
+            /usr/local/share/boost \
+            "$AGENT_TOOLSDIRECTORY/go" \
+            "$AGENT_TOOLSDIRECTORY/node/20.*/x64/share/doc" \
+          || true
+          sudo apt-get clean
+          docker system prune -af || true
+          echo "Disk after cleanup:"
+          df -h /
+
       # ── 2. Node.js ─────────────────────────────────────────────────────────
       - name: Set up Node.js 20
         uses: actions/setup-node@v4

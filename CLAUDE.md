@@ -73,5 +73,34 @@ per explicit, repeated user instruction on 2026-07-08 (not an oversight):
 `python3 *`, `node -e *`, `npx *`, and `git push *` are wildcarded, which
 normally amounts to standing arbitrary-code-execution / remote-mutation
 rights. The user was told this plainly and asked for it anyway. Force-push
-is deliberately *not* in that list and should stay a manual judgment call
+is deliberately  not in that list and should stay a manual judgment call
 regardless of what's technically allowlisted.
+
+## Bug-fix notes — 2026-07-15
+
+### Photo save crash: "value cannot be null, expected an object"
+Both CameraScreen and UploadScreen pipe through `processImageWithWatermark`
+in `src/utils/imageProcessor.ts`. The crash was caused by using
+`snapshot.encodeToBase64()` which can return null on native Android.
+**Fix**: always use `snapshot.encodeToBytes()` (returns a reliable `Uint8Array`)
+then convert with `fromByteArray()` from `react-native-quick-base64` before
+passing the string to `RNFS.writeFile(..., 'base64')`. This pattern is now
+documented in `.agents/AGENTS.md`.
+
+### Keyboard dismisses after one letter (Edit Watermark modal)
+`src/components/CoordEditModal.tsx` had `const Row = ...` and `const Toggle = ...`
+helper components defined **inside** the parent function body. Every `setState`
+call (e.g. typing a character) re-rendered the parent, producing new function
+references for `Row`/`Toggle`, causing React to unmount→remount the underlying
+`TextInput` and dismiss the keyboard mid-typing.
+**Fix**: promote `FieldRow` and `ToggleRow` to **module-level** `React.memo`
+components that receive `colors` and callbacks as props. Also added
+`keyboardShouldPersistTaps="handled"` on the wrapping `ScrollView`. The same
+anti-pattern must be avoided in any future modal that hosts `TextInput`.
+
+### Live watermark preview in Edit Watermark modal
+Added a `WatermarkPreview` component at the top of `CoordEditModal` that renders
+a simulated photo thumbnail with the watermark overlay updating in real-time
+as the user edits fields or flips visibility toggles. It mirrors position,
+opacity, text colour, font size, and all field content exactly as it will
+appear on the saved image.
