@@ -1,7 +1,7 @@
 // src/utils/imageProcessor.ts
 import {Skia, ImageFormat} from '@shopify/react-native-skia';
 import {fromByteArray} from 'react-native-quick-base64';
-import RNFS from 'react-native-fs';
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import {WatermarkData, WatermarkSettings} from '../types';
 import {IMAGE_QUALITY, IMAGE_MAX_DIMENSION} from '../constants/config';
 import {buildWatermarkLines, getWatermarkOrigin, getWatermarkColors} from './watermarkBuilder';

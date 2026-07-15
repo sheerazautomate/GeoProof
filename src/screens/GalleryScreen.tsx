@@ -14,7 +14,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import RNFS from 'react-native-fs';
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import {useTheme} from '../context/ThemeContext';
 import {storage} from '../utils/storage';
 import {GeoProofPhoto} from '../types';

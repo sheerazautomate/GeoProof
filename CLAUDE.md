@@ -80,12 +80,38 @@ regardless of what's technically allowlisted.
 
 ### Photo save crash: "value cannot be null, expected an object"
 Both CameraScreen and UploadScreen pipe through `processImageWithWatermark`
-in `src/utils/imageProcessor.ts`. The crash was caused by using
-`snapshot.encodeToBase64()` which can return null on native Android.
-**Fix**: always use `snapshot.encodeToBytes()` (returns a reliable `Uint8Array`)
-then convert with `fromByteArray()` from `react-native-quick-base64` before
-passing the string to `RNFS.writeFile(..., 'base64')`. This pattern is now
-documented in `.agents/AGENTS.md`.
+in `src/utils/imageProcessor.ts`. First fix attempt: swapping
+`snapshot.encodeToBase64()` (can return null on native Android) for
+`snapshot.encodeToBytes()` + `fromByteArray()` from `react-native-quick-base64`.
+That was a real bug but **not the actual root cause** — the crash persisted
+identically in two subsequent signed release builds (release 17, 18) after
+that fix shipped.
+
+**Real root cause**: `react-native-fs` (v2.20.0) is an old legacy-bridge
+module that was never properly updated for React Native's New Architecture,
+which is mandatory (not optional) on RN 0.86 — the old bridge was removed in
+0.82. The JSI/TurboModule interop layer chokes on `RNFS.mkdir` /
+`RNFS.writeFile` / `RNFS.stat`'s native return values, producing the generic
+native-layer error "value is null, expected an object". This happened in
+both CameraScreen and UploadScreen because both call the same underlying
+`RNFS` methods in `imageProcessor.ts`.
+
+**Fix (2026-07-15)**: replaced `react-native-fs` with
+`@dr.pogodin/react-native-fs` (`^2.28.1`) — an actively maintained fork built
+specifically to support the New Architecture, API-compatible with the
+original (`RNFS.mkdir`, `RNFS.writeFile`, `RNFS.PicturesDirectoryPath`, etc.
+all work unchanged). Only the import line changed, in
+`src/utils/imageProcessor.ts` and `src/screens/GalleryScreen.tsx`:
+`import * as RNFS from '@dr.pogodin/react-native-fs';` (the fork has no
+default export, unlike the original). `package-lock.json` regenerated to
+match.
+
+**Lesson**: when a fix doesn't resolve a crash across a fresh signed build,
+re-examine the assumption that the earlier diagnosis was even the right bug
+— don't just re-apply the same fix harder. Any other legacy (non-Turbo,
+non-Nitro) native module in this project should be treated as a suspect for
+this same class of interop failure under RN 0.86's mandatory New
+Architecture.
 
 ### Keyboard dismisses after one letter (Edit Watermark modal)
 `src/components/CoordEditModal.tsx` had `const Row = ...` and `const Toggle = ...`
