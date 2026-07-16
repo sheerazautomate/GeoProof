@@ -1,11 +1,19 @@
 // src/utils/imageProcessor.ts
 import {Skia, ImageFormat} from '@shopify/react-native-skia';
 import {fromByteArray} from 'react-native-quick-base64';
-import * as RNFS from '@dr.pogodin/react-native-fs';
 import {WatermarkData, WatermarkSettings} from '../types';
 import {IMAGE_QUALITY, IMAGE_MAX_DIMENSION} from '../constants/config';
 import {buildWatermarkLines, getWatermarkOrigin, getWatermarkColors} from './watermarkBuilder';
 import {WatermarkFontPx} from '../constants/fonts';
+import {buildPhotoOutputPath} from './photoFileStorage';
+import {
+  writeFile,
+  mkdir,
+  stat,
+  DocumentDirectoryPath,
+  CachesDirectoryPath,
+  PicturesDirectoryPath,
+} from '@dr.pogodin/react-native-fs';
 
 export interface ProcessResult {
   uri: string;
@@ -110,25 +118,30 @@ export async function processImageWithWatermark(
 
   // ── 7. Encode & write ─────────────────────────────────────────────────────
   const snapshot = surface.makeImageSnapshot();
-  // Use encodeToBytes() + fromByteArray() per AGENTS.md:
-  // encodeToBytes returns Uint8Array; RNFS.writeFile needs a base64 string.
   const bytes = snapshot.encodeToBytes(ImageFormat.JPEG, Math.round(IMAGE_QUALITY * 100));
   if (!bytes) throw new Error('Failed to encode image');
   const encoded = fromByteArray(bytes);
 
-  const dir = `${RNFS.PicturesDirectoryPath}/GeoProof`;
-  await RNFS.mkdir(dir);
   const fileName = `GeoProof_${Date.now()}.jpg`;
-  const outPath = `${dir}/${fileName}`;
+  const outPath = buildPhotoOutputPath(
+    {
+      DocumentDirectoryPath,
+      CachesDirectoryPath,
+      PicturesDirectoryPath,
+    },
+    fileName,
+  );
 
-  await RNFS.writeFile(outPath, encoded, 'base64');
+  const dir = outPath.substring(0, outPath.lastIndexOf('/'));
+  await mkdir(dir);
+  await writeFile(outPath, encoded, 'base64');
 
-  const stat = await RNFS.stat(outPath);
+  const fileStat = await stat(outPath);
 
   return {
     uri: `file://${outPath}`,
     width: outW,
     height: outH,
-    fileSize: stat.size,
+    fileSize: fileStat.size,
   };
 }
