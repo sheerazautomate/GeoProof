@@ -11,6 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {CachesDirectoryPath} from '@dr.pogodin/react-native-fs';
+import {ensureLocalFileUri, tryUnlinkLocalFile} from '../utils/uriResolver';
 import {useTheme} from '../context/ThemeContext';
 import {useSettings} from '../context/SettingsContext';
 import {useGPS} from '../hooks/useGPS';
@@ -52,7 +54,16 @@ export function UploadScreen() {
       includeBase64: false,
     });
     if (result.didCancel || !result.assets?.[0]?.uri) return;
-    setSelectedUri(result.assets[0].uri);
+    const asset = result.assets[0];
+
+    try {
+      const local = await ensureLocalFileUri(asset.uri);
+      setSelectedUri(local);
+    } catch (err: any) {
+      // Fallback: use original URI if resolution fails; processor now throws clearer errors.
+      setSelectedUri(asset.uri);
+    }
+
     setWatermarkData(buildWatermarkData());
   };
 
@@ -96,6 +107,9 @@ export function UploadScreen() {
           },
           {text: 'OK'},
         ]);
+        try {
+          await tryUnlinkLocalFile(selectedUri);
+        } catch {}
       } catch (e: any) {
         Alert.alert('Error', e.message);
       } finally {

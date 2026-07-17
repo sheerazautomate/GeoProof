@@ -37,9 +37,24 @@ export async function processImageWithWatermark(
   settings: WatermarkSettings,
 ): Promise<ProcessResult> {
   // ── 1. Load source image ──────────────────────────────────────────────────
+  // Guard: Skia.Data.fromURI may return null for unsupported URI schemes
+  // (e.g. some Android content:// URIs). Provide an explicit, actionable
+  // error message rather than passing null to native calls which produce
+  // opaque native exceptions like "Value is null, expected an object".
   const rawData = await Skia.Data.fromURI(sourceUri);
-  const skImage = Skia.Image.MakeImageFromEncoded(rawData);
-  if (!skImage) throw new Error('Failed to decode image');
+  if (!rawData) {
+    throw new Error(`Skia.Data.fromURI returned null for sourceUri=${sourceUri}`);
+  }
+
+  let skImage;
+  try {
+    skImage = Skia.Image.MakeImageFromEncoded(rawData);
+  } catch (err: any) {
+    throw new Error(
+      `Skia.Image.MakeImageFromEncoded failed for sourceUri=${sourceUri}: ${err?.message ?? err}`,
+    );
+  }
+  if (!skImage) throw new Error('Failed to decode image (MakeImageFromEncoded returned null)');
 
   const srcW = skImage.width();
   const srcH = skImage.height();
@@ -118,8 +133,10 @@ export async function processImageWithWatermark(
 
   // ── 7. Encode & write ─────────────────────────────────────────────────────
   const snapshot = surface.makeImageSnapshot();
+  if (!snapshot) throw new Error('Skia surface.makeImageSnapshot() returned null');
+
   const bytes = snapshot.encodeToBytes(ImageFormat.JPEG, Math.round(IMAGE_QUALITY * 100));
-  if (!bytes) throw new Error('Failed to encode image');
+  if (!bytes) throw new Error('Failed to encode image (encodeToBytes returned null)');
   const encoded = fromByteArray(bytes);
 
   const fileName = `GeoProof_${Date.now()}.jpg`;

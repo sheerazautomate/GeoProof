@@ -23,6 +23,7 @@ import {CoordEditModal} from '../components/CoordEditModal';
 import {TagPickerModal} from '../components/TagPickerModal';
 import {processImageWithWatermark} from '../utils/imageProcessor';
 import {storage} from '../utils/storage';
+import {tryUnlinkLocalFile} from '../utils/uriResolver';
 import {WatermarkData, GeoProofPhoto, SavedTag} from '../types';
 import {FontSizes, FontWeights} from '../constants/fonts';
 
@@ -70,7 +71,6 @@ export function CameraScreen() {
       }, {});
       const path = await photo.saveToTemporaryFileAsync();
       const uri = `file://${path}`;
-      photo.dispose();
       
       const wmData = buildWatermarkData();
       setPendingPhoto(uri);
@@ -106,6 +106,9 @@ export function CameraScreen() {
         };
         await storage.addPhoto(photo);
         Alert.alert('✅ Saved', 'Photo saved to GeoProof gallery.');
+        try {
+          await tryUnlinkLocalFile(pendingPhoto);
+        } catch {}
       } catch (e: any) {
         Alert.alert('Save failed', e.message);
       } finally {
