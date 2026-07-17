@@ -127,7 +127,7 @@ export async function processImageWithWatermark(
   textPaint.setColor(Skia.Color(textColor));
   textPaint.setAntiAlias(true);
 
-  const font = Skia.Font(null, fontSize);
+  const font = Skia.Font(undefined, fontSize);
 
   lines.forEach((line, i) => {
     const x = origin.x;
