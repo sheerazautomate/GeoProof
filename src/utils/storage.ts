@@ -52,6 +52,8 @@ export const storage = {
   },
 
   async clearAll(): Promise<void> {
-    await AsyncStorage.multiRemove(Object.values(STORAGE_KEYS));
+    await Promise.all(
+      Object.values(STORAGE_KEYS).map(key => AsyncStorage.removeItem(key)),
+    );
   },
 };

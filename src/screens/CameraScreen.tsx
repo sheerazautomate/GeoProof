@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import {
   Camera,
+  CameraRef,
   useCameraDevices,
   useCameraPermission,
   usePhotoOutput,
@@ -20,7 +21,7 @@ import {useSettings} from '../context/SettingsContext';
 import {useGPS} from '../hooks/useGPS';
 import {useReverseGeo} from '../hooks/useReverseGeo';
 import {CoordEditModal} from '../components/CoordEditModal';
-import {processImageWithWatermark} from '../utils/imageProcessor';
+import {TagPickerModal} from '../components/TagPickerModal';
 import {processImageWithWatermark} from '../utils/imageProcessor';
 import {storage} from '../utils/storage';
 import {tryUnlinkLocalFile} from '../utils/uriResolver';
@@ -38,7 +39,7 @@ export function CameraScreen() {
   const [isFront, setIsFront] = useState(false);
   const devices = useCameraDevices();
   const device = devices.find(d => d.position === (isFront ? 'front' : 'back'));
-  const cameraRef = useRef<Camera>(null);
+  const cameraRef = useRef<CameraRef>(null);
   const photoOutput = usePhotoOutput();
 
   const {coordinates, status: gpsStatus} = useGPS();
@@ -74,13 +75,13 @@ export function CameraScreen() {
       }, {});
       const path = await photo.saveToTemporaryFileAsync();
       const uri = `file://${path}`;
-      
+
       const wmData = buildWatermarkData();
       setPendingPhoto(uri);
       setEditableWatermark(wmData);
-      setError(e);
-      Alert.alert('Capture failed', e.message);
+      setShowEditModal(true);
     } catch (e: any) {
+      setError(e);
       Alert.alert('Capture failed', e.message);
     } finally {
       setIsCapturing(false);
@@ -121,9 +122,11 @@ export function CameraScreen() {
         Alert.alert('✅ Saved', 'Photo saved to GeoProof gallery.');
         try {
           await tryUnlinkLocalFile(pendingPhoto);
-        setError(e);
-        Alert.alert('Save failed', e.message);
+        } catch (cleanupError: any) {
+          console.warn('Failed to remove temporary photo:', cleanupError);
+        }
       } catch (e: any) {
+        setError(e);
         Alert.alert('Save failed', e.message);
       } finally {
         setIsCapturing(false);
@@ -200,9 +203,8 @@ export function CameraScreen() {
         style={StyleSheet.absoluteFill}
         device={device}
         isActive={!showEditModal && !showTagModal}
-        photo
         outputs={[photoOutput]}
-        enableZoomGesture
+        enableNativeZoomGesture
         torchMode={flash === 'on' ? 'on' : 'off'}
       />
 
@@ -276,10 +278,10 @@ export function CameraScreen() {
         visible={showTagModal}
         onSelect={handleTagSelect}
         onClose={() => setShowTagModal(false)}
-
-      <ErrorModal visible={!!error} error={error} onClose={() => setError(null)} />
         currentCoords={coordinates}
       />
+
+      <ErrorModal visible={!!error} error={error} onClose={() => setError(null)} />
     </View>
   );
 }

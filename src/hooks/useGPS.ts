@@ -45,6 +45,15 @@ export function useGPS(): UseGPSReturn {
       Geolocation.clearWatch(watchId.current);
     }
 
+    const watchOptions = {
+      accuracy: {android: 'high'},
+      timeout: GPS_TIMEOUT_MS,
+      maximumAge: GPS_MAX_AGE_MS,
+      distanceFilter: GPS_DISTANCE_FILTER,
+      forceRequestLocation: true,
+      showLocationDialog: true,
+    } as any;
+
     watchId.current = Geolocation.watchPosition(
       position => {
         const {latitude, longitude, accuracy: acc, altitude} = position.coords;
@@ -65,14 +74,7 @@ export function useGPS(): UseGPSReturn {
         }
         setCoordinates(null);
       },
-      {
-        accuracy: {android: 'high'},
-        timeout: GPS_TIMEOUT_MS,
-        maximumAge: GPS_MAX_AGE_MS,
-        distanceFilter: GPS_DISTANCE_FILTER,
-        forceRequestLocation: true,
-        showLocationDialog: true,
-      },
+      watchOptions,
     );
   }, []);
 
