@@ -22,6 +22,7 @@ import {TagPickerModal} from '../components/TagPickerModal';
 import {processImageWithWatermark} from '../utils/imageProcessor';
 import {storage} from '../utils/storage';
 import {WatermarkData, GeoProofPhoto, SavedTag} from '../types';
+import ErrorModal from '../components/ErrorModal';
 import {FontSizes, FontWeights} from '../constants/fonts';
 
 export function UploadScreen() {
@@ -38,6 +39,7 @@ export function UploadScreen() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showTagModal, setShowTagModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<any>(null);
 
   const buildWatermarkData = useCallback((): WatermarkData => ({
     coordinates,
@@ -111,6 +113,7 @@ export function UploadScreen() {
           await tryUnlinkLocalFile(selectedUri);
         } catch {}
       } catch (e: any) {
+        setError(e);
         Alert.alert('Error', e.message);
       } finally {
         setIsProcessing(false);
@@ -227,6 +230,7 @@ export function UploadScreen() {
         onClose={() => setShowTagModal(false)}
         currentCoords={coordinates}
       />
+      <ErrorModal visible={!!error} error={error} onClose={() => setError(null)} />
     </ScrollView>
   );
 }

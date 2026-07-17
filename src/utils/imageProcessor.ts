@@ -73,11 +73,15 @@ export async function processImageWithWatermark(
   if (!surface) throw new Error('Failed to create Skia surface');
   const canvas = surface.getCanvas();
 
-  // Draw scaled image
-  const srcRect = Skia.XYWHRect(0, 0, srcW, srcH);
-  const dstRect = Skia.XYWHRect(0, 0, outW, outH);
-  const paint = Skia.Paint();
-  canvas.drawImageRect(skImage, srcRect, dstRect, paint);
+  // Draw scaled image (guard draw errors)
+  try {
+    const srcRect = Skia.XYWHRect(0, 0, srcW, srcH);
+    const dstRect = Skia.XYWHRect(0, 0, outW, outH);
+    const paint = Skia.Paint();
+    canvas.drawImageRect(skImage, srcRect, dstRect, paint);
+  } catch (err: any) {
+    throw new Error(`Skia canvas.drawImageRect failed: ${err?.message ?? err}`);
+  }
 
   // ── 4. Build watermark text lines ────────────────────────────────────────
   const lines = buildWatermarkLines(watermarkData, settings);
@@ -150,10 +154,26 @@ export async function processImageWithWatermark(
   );
 
   const dir = outPath.substring(0, outPath.lastIndexOf('/'));
-  await mkdir(dir);
-  await writeFile(outPath, encoded, 'base64');
+  try {
+    await mkdir(dir);
+  } catch (err: any) {
+    // mkdir may throw if exists or permission issues
+    // surface the error with context
+    throw new Error(`mkdir failed for dir=${dir}: ${err?.message ?? err}`);
+  }
 
-  const fileStat = await stat(outPath);
+  try {
+    await writeFile(outPath, encoded, 'base64');
+  } catch (err: any) {
+    throw new Error(`writeFile failed for outPath=${outPath}: ${err?.message ?? err}`);
+  }
+
+  let fileStat;
+  try {
+    fileStat = await stat(outPath);
+  } catch (err: any) {
+    throw new Error(`stat failed for outPath=${outPath}: ${err?.message ?? err}`);
+  }
 
   return {
     uri: `file://${outPath}`,

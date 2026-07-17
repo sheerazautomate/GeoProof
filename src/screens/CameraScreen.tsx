@@ -20,10 +20,12 @@ import {useSettings} from '../context/SettingsContext';
 import {useGPS} from '../hooks/useGPS';
 import {useReverseGeo} from '../hooks/useReverseGeo';
 import {CoordEditModal} from '../components/CoordEditModal';
-import {TagPickerModal} from '../components/TagPickerModal';
+import {processImageWithWatermark} from '../utils/imageProcessor';
 import {processImageWithWatermark} from '../utils/imageProcessor';
 import {storage} from '../utils/storage';
 import {tryUnlinkLocalFile} from '../utils/uriResolver';
+import ErrorModal from '../components/ErrorModal';
+import {stat} from '@dr.pogodin/react-native-fs';
 import {WatermarkData, GeoProofPhoto, SavedTag} from '../types';
 import {FontSizes, FontWeights} from '../constants/fonts';
 
@@ -50,6 +52,7 @@ export function CameraScreen() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showTagModal, setShowTagModal] = useState(false);
   const [pendingPhoto, setPendingPhoto] = useState<string | null>(null);
+  const [error, setError] = useState<any>(null);
   const [editableWatermark, setEditableWatermark] = useState<WatermarkData | null>(null);
   const [customLabel, setCustomLabel] = useState('');
 
@@ -75,7 +78,8 @@ export function CameraScreen() {
       const wmData = buildWatermarkData();
       setPendingPhoto(uri);
       setEditableWatermark(wmData);
-      setShowEditModal(true);
+      setError(e);
+      Alert.alert('Capture failed', e.message);
     } catch (e: any) {
       Alert.alert('Capture failed', e.message);
     } finally {
@@ -88,6 +92,15 @@ export function CameraScreen() {
       setShowEditModal(false);
       if (!pendingPhoto) return;
 
+        // Verify temp file exists before processing
+        if (pendingPhoto.startsWith('file://')) {
+          const p = pendingPhoto.replace('file://', '');
+          try {
+            await stat(p);
+          } catch (err: any) {
+            throw new Error(`Temporary photo missing or inaccessible: ${pendingPhoto}`);
+          }
+        }
       setIsCapturing(true);
       try {
         const result = await processImageWithWatermark(
@@ -108,7 +121,8 @@ export function CameraScreen() {
         Alert.alert('✅ Saved', 'Photo saved to GeoProof gallery.');
         try {
           await tryUnlinkLocalFile(pendingPhoto);
-        } catch {}
+        setError(e);
+        Alert.alert('Save failed', e.message);
       } catch (e: any) {
         Alert.alert('Save failed', e.message);
       } finally {
@@ -262,6 +276,8 @@ export function CameraScreen() {
         visible={showTagModal}
         onSelect={handleTagSelect}
         onClose={() => setShowTagModal(false)}
+
+      <ErrorModal visible={!!error} error={error} onClose={() => setError(null)} />
         currentCoords={coordinates}
       />
     </View>
