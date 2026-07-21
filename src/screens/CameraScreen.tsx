@@ -26,7 +26,7 @@ import {processImageWithWatermark} from '../utils/imageProcessor';
 import {storage} from '../utils/storage';
 import {tryUnlinkLocalFile} from '../utils/uriResolver';
 import ErrorModal from '../components/ErrorModal';
-import {stat} from '@dr.pogodin/react-native-fs';
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import {WatermarkData, GeoProofPhoto, SavedTag} from '../types';
 import {FontSizes, FontWeights} from '../constants/fonts';
 
@@ -73,8 +73,7 @@ export function CameraScreen() {
         flashMode: flash,
         enableShutterSound: true,
       }, {});
-      const path = await photo.saveToTemporaryFileAsync();
-      const uri = `file://${path}`;
+      const uri = `file://${photo.path}`;
 
       const wmData = buildWatermarkData();
       setPendingPhoto(uri);
@@ -97,7 +96,7 @@ export function CameraScreen() {
         if (pendingPhoto.startsWith('file://')) {
           const p = pendingPhoto.replace('file://', '');
           try {
-            await stat(p);
+            await RNFS.stat(p);
           } catch (err: any) {
             throw new Error(`Temporary photo missing or inaccessible: ${pendingPhoto}`);
           }

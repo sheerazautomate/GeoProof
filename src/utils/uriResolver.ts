@@ -1,13 +1,13 @@
 import RNFetchBlob from 'react-native-blob-util';
-import {CachesDirectoryPath, mkdir, writeFile} from '@dr.pogodin/react-native-fs';
+import * as RNFS from '@dr.pogodin/react-native-fs';
 
 export async function ensureLocalFileUri(uri: string): Promise<string> {
   if (!uri) throw new Error('Empty URI');
   if (uri.startsWith('file://')) return uri;
 
-  const dir = `${CachesDirectoryPath}/GeoProof`;
+  const dir = `${RNFS.CachesDirectoryPath}/GeoProof`;
   try {
-    await mkdir(dir);
+    await RNFS.mkdir(dir);
   } catch {}
 
   const tmpPath = `${dir}/uri_${Date.now()}.jpg`;
@@ -15,7 +15,7 @@ export async function ensureLocalFileUri(uri: string): Promise<string> {
   try {
     // RNFetchBlob can read content:// and other provider URIs on Android.
     const base64 = await RNFetchBlob.fs.readFile(uri, 'base64');
-    await writeFile(tmpPath, base64, 'base64');
+    await RNFS.writeFile(tmpPath, base64, 'base64');
     return `file://${tmpPath}`;
   } catch (err: any) {
     throw new Error(`Failed to resolve URI to local file: ${err?.message ?? err}`);

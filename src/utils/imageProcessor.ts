@@ -6,14 +6,7 @@ import {IMAGE_QUALITY, IMAGE_MAX_DIMENSION} from '../constants/config';
 import {buildWatermarkLines, getWatermarkOrigin, getWatermarkColors} from './watermarkBuilder';
 import {WatermarkFontPx} from '../constants/fonts';
 import {buildPhotoOutputPath} from './photoFileStorage';
-import {
-  writeFile,
-  mkdir,
-  stat,
-  DocumentDirectoryPath,
-  CachesDirectoryPath,
-  PicturesDirectoryPath,
-} from '@dr.pogodin/react-native-fs';
+import * as RNFS from '@dr.pogodin/react-native-fs';
 
 export interface ProcessResult {
   uri: string;
@@ -146,16 +139,16 @@ export async function processImageWithWatermark(
   const fileName = `GeoProof_${Date.now()}.jpg`;
   const outPath = buildPhotoOutputPath(
     {
-      DocumentDirectoryPath,
-      CachesDirectoryPath,
-      PicturesDirectoryPath,
+      DocumentDirectoryPath: RNFS.DocumentDirectoryPath,
+      CachesDirectoryPath: RNFS.CachesDirectoryPath,
+      PicturesDirectoryPath: RNFS.PicturesDirectoryPath,
     },
     fileName,
   );
 
   const dir = outPath.substring(0, outPath.lastIndexOf('/'));
   try {
-    await mkdir(dir);
+    await RNFS.mkdir(dir);
   } catch (err: any) {
     // mkdir may throw if exists or permission issues
     // surface the error with context
@@ -163,14 +156,14 @@ export async function processImageWithWatermark(
   }
 
   try {
-    await writeFile(outPath, encoded, 'base64');
+    await RNFS.writeFile(outPath, encoded, 'base64');
   } catch (err: any) {
     throw new Error(`writeFile failed for outPath=${outPath}: ${err?.message ?? err}`);
   }
 
   let fileStat;
   try {
-    fileStat = await stat(outPath);
+    fileStat = await RNFS.stat(outPath);
   } catch (err: any) {
     throw new Error(`stat failed for outPath=${outPath}: ${err?.message ?? err}`);
   }

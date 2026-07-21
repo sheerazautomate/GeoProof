@@ -6,10 +6,13 @@ export interface PhotoStoragePaths {
 
 export function resolvePhotoStorageDir(paths?: PhotoStoragePaths | null): string {
   const baseDir =
-    paths?.DocumentDirectoryPath ||
     paths?.PicturesDirectoryPath ||
-    paths?.CachesDirectoryPath ||
-    '/tmp';
+    paths?.DocumentDirectoryPath ||
+    paths?.CachesDirectoryPath;
+
+  if (!baseDir) {
+    throw new Error('Could not resolve a valid storage directory from RNFS constants.');
+  }
 
   return baseDir;
 }

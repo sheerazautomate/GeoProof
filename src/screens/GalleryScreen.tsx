@@ -14,7 +14,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import {unlink} from '@dr.pogodin/react-native-fs';
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import {useTheme} from '../context/ThemeContext';
 import {storage} from '../utils/storage';
 import {GeoProofPhoto} from '../types';
@@ -49,7 +49,7 @@ export function GalleryScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await unlink(photo.uri.replace('file://', ''));
+            await RNFS.unlink(photo.uri.replace('file://', ''));
           } catch {}
           await storage.deletePhoto(photo.id);
           setSelected(null);
