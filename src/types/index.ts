@@ -48,12 +48,17 @@ export interface GeoProofPhoto {
   fileSize?: number;
 }
 
+export type SaveLocation = 'app-private' | 'external-pictures' | 'cache';
+export type FileWriteBackend = 'rnfs' | 'blob';
+
 export interface AppSettings {
   watermark: WatermarkSettings;
   theme: 'light' | 'dark' | 'system';
   addressLookupEnabled: boolean;
   coordinateFormat: 'DD';          // extensible later
   savedTags: SavedTag[];
+  saveLocation: SaveLocation;
+  saveBackend: FileWriteBackend;
 }
 
 export interface LicenseState {

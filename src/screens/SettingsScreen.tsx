@@ -21,7 +21,7 @@ import {storage} from '../utils/storage';
 
 export function SettingsScreen() {
   const {colors, themeMode, setThemeMode, isDark} = useTheme();
-  const {settings, updateWatermarkSettings, setAddressLookup} = useSettings();
+  const {settings, updateWatermarkSettings, updateAppSettings, setAddressLookup} = useSettings();
   const {deviceId, licenseState} = useLicense();
   const [showTagManager, setShowTagManager] = useState(false);
   const wm = settings.watermark;
@@ -255,7 +255,34 @@ export function SettingsScreen() {
             onSelect={setThemeMode}
           />
         </View>
-
+ 
+        {/* ── Photo Save Strategy ── */}
+        <Section title="PHOTO SAVE STRATEGY" />
+        <View style={s.card}>
+          <SegmentRow
+            label="Save Location"
+            options={[
+              {label: 'App Private', value: 'app-private'},
+              {label: 'External Pictures', value: 'external-pictures'},
+              {label: 'Cache', value: 'cache'},
+            ]}
+            selected={settings.saveLocation}
+            onSelect={v => updateAppSettings({saveLocation: v})}
+          />
+          <SegmentRow
+            label="Write Backend"
+            options={[
+              {label: 'RNFS', value: 'rnfs'},
+              {label: 'Blob Util', value: 'blob'},
+            ]}
+            selected={settings.saveBackend}
+            onSelect={v => updateAppSettings({saveBackend: v})}
+          />
+          <Text style={s.hintText}>
+            Use App Private for maximum compatibility. Use Blob util if RNFS fails on some devices.
+          </Text>
+        </View>
+ 
         {/* ── Storage ── */}
         <Section title="STORAGE" />
         <View style={s.card}>
@@ -364,5 +391,12 @@ const styles = (colors: any) =>
       fontSize: FontSizes.sm,
       color: colors.textSecondary,
       fontWeight: FontWeights.medium,
+    },
+    hintText: {
+      fontSize: FontSizes.xs,
+      color: colors.textMuted,
+      marginTop: 10,
+      marginHorizontal: 16,
+      lineHeight: 18,
     },
   });

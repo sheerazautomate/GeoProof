@@ -13,6 +13,7 @@ import {DEFAULT_APP_SETTINGS} from '../constants/config';
 interface SettingsContextValue {
   settings: AppSettings;
   updateWatermarkSettings: (patch: Partial<WatermarkSettings>) => Promise<void>;
+  updateAppSettings: (patch: Partial<AppSettings>) => Promise<void>;
   addSavedTag: (tag: SavedTag) => Promise<void>;
   updateSavedTag: (tag: SavedTag) => Promise<void>;
   deleteSavedTag: (id: string) => Promise<void>;
@@ -23,6 +24,7 @@ interface SettingsContextValue {
 const SettingsContext = createContext<SettingsContextValue>({
   settings: DEFAULT_APP_SETTINGS,
   updateWatermarkSettings: async () => {},
+  updateAppSettings: async () => {},
   addSavedTag: async () => {},
   updateSavedTag: async () => {},
   deleteSavedTag: async () => {},
@@ -94,12 +96,19 @@ export const SettingsProvider: React.FC<{children: React.ReactNode}> = ({
     [settings, save],
   );
 
-  const setAddressLookup = useCallback(
-    async (enabled: boolean) => {
-      const updated = {...settings, addressLookupEnabled: enabled};
+  const updateAppSettings = useCallback(
+    async (patch: Partial<AppSettings>) => {
+      const updated = {...settings, ...patch};
       await save(updated);
     },
     [settings, save],
+  );
+
+  const setAddressLookup = useCallback(
+    async (enabled: boolean) => {
+      await updateAppSettings({addressLookupEnabled: enabled});
+    },
+    [updateAppSettings],
   );
 
   return (
@@ -107,6 +116,7 @@ export const SettingsProvider: React.FC<{children: React.ReactNode}> = ({
       value={{
         settings,
         updateWatermarkSettings,
+        updateAppSettings,
         addSavedTag,
         updateSavedTag,
         deleteSavedTag,

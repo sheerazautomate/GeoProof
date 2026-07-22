@@ -88,6 +88,10 @@ export function UploadScreen() {
           selectedUri,
           wmData,
           wmSettings,
+          {
+            saveLocation: settings.saveLocation,
+            saveBackend: settings.saveBackend,
+          },
         );
         const photo: GeoProofPhoto = {
           id: Date.now().toString(),

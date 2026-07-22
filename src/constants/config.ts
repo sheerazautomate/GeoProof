@@ -53,4 +53,6 @@ export const DEFAULT_APP_SETTINGS = {
   addressLookupEnabled: true,
   coordinateFormat: 'DD' as const,
   savedTags: [],
+  saveLocation: 'app-private' as const,
+  saveBackend: 'rnfs' as const,
 };

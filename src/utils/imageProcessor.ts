@@ -1,7 +1,8 @@
 // src/utils/imageProcessor.ts
 import {Skia, ImageFormat} from '@shopify/react-native-skia';
 import {fromByteArray} from 'react-native-quick-base64';
-import {WatermarkData, WatermarkSettings} from '../types';
+import RNFetchBlob from 'react-native-blob-util';
+import {FileWriteBackend, SaveLocation, WatermarkData, WatermarkSettings} from '../types';
 import {IMAGE_QUALITY, IMAGE_MAX_DIMENSION} from '../constants/config';
 import {buildWatermarkLines, getWatermarkOrigin, getWatermarkColors} from './watermarkBuilder';
 import {WatermarkFontPx} from '../constants/fonts';
@@ -21,13 +22,19 @@ export interface ProcessResult {
  * 2. Scale down if larger than IMAGE_MAX_DIMENSION
  * 3. Render text watermark onto the surface
  * 4. Encode as JPEG at IMAGE_QUALITY
- * 5. Write to app's Pictures directory
+ * 5. Write to a configurable local directory using RNFS or blob util
  * 6. Return local URI
  */
+export interface PhotoSaveOptions {
+  saveLocation?: SaveLocation;
+  saveBackend?: FileWriteBackend;
+}
+
 export async function processImageWithWatermark(
   sourceUri: string,
   watermarkData: WatermarkData,
   settings: WatermarkSettings,
+  options: PhotoSaveOptions = {},
 ): Promise<ProcessResult> {
   // ── 1. Load source image ──────────────────────────────────────────────────
   // Guard: Skia.Data.fromURI may return null for unsupported URI schemes
@@ -136,6 +143,8 @@ export async function processImageWithWatermark(
   if (!bytes) throw new Error('Failed to encode image (encodeToBytes returned null)');
   const encoded = fromByteArray(bytes);
 
+  const saveLocation = options.saveLocation ?? 'app-private';
+  const saveBackend = options.saveBackend ?? 'rnfs';
   const fileName = `GeoProof_${Date.now()}.jpg`;
   const outPath = buildPhotoOutputPath(
     {
@@ -144,19 +153,44 @@ export async function processImageWithWatermark(
       PicturesDirectoryPath: RNFS.PicturesDirectoryPath,
     },
     fileName,
+    saveLocation,
   );
 
   const dir = outPath.substring(0, outPath.lastIndexOf('/'));
   try {
-    await RNFS.mkdir(dir);
+   const exists = await RNFS.exists(dir);
+   if (!exists) {
+     await RNFS.mkdir(dir);
+   }
   } catch (err: any) {
-    // mkdir may throw if exists or permission issues
-    // surface the error with context
-    throw new Error(`mkdir failed for dir=${dir}: ${err?.message ?? err}`);
+   throw new Error(`mkdir failed for dir=${dir}: ${err?.message ?? err}`);
   }
 
-  try {
+  const writeFileWithRnfs = async () => {
     await RNFS.writeFile(outPath, encoded, 'base64');
+  };
+
+  const writeFileWithBlob = async () => {
+    await RNFetchBlob.fs.writeFile(outPath, encoded, 'base64');
+  };
+
+  try {
+    if (saveBackend === 'blob') {
+      await writeFileWithBlob();
+    } else {
+      try {
+        await writeFileWithRnfs();
+      } catch (err: any) {
+        // Fall back to react-native-blob-util if RNFS fails on some Android storage paths.
+        try {
+          await writeFileWithBlob();
+        } catch (fallbackErr: any) {
+          throw new Error(
+            `writeFile failed with RNFS: ${err?.message ?? err}; fallback with Blob util also failed: ${fallbackErr?.message ?? fallbackErr}`,
+          );
+        }
+      }
+    }
   } catch (err: any) {
     throw new Error(`writeFile failed for outPath=${outPath}: ${err?.message ?? err}`);
   }
