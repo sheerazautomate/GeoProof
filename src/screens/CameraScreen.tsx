@@ -92,15 +92,6 @@ export function CameraScreen() {
       setShowEditModal(false);
       if (!pendingPhoto) return;
 
-        // Verify temp file exists before processing
-        if (pendingPhoto.startsWith('file://')) {
-          const p = pendingPhoto.replace('file://', '');
-          try {
-            await RNFS.stat(p);
-          } catch (err: any) {
-            throw new Error(`Temporary photo missing or inaccessible: ${pendingPhoto}`);
-          }
-        }
       setIsCapturing(true);
       try {
         const result = await processImageWithWatermark(

@@ -161,17 +161,14 @@ export async function processImageWithWatermark(
     throw new Error(`writeFile failed for outPath=${outPath}: ${err?.message ?? err}`);
   }
 
-  let fileStat;
-  try {
-    fileStat = await RNFS.stat(outPath);
-  } catch (err: any) {
-    throw new Error(`stat failed for outPath=${outPath}: ${err?.message ?? err}`);
-  }
+  // Calculate fileSize from the base64 string (3 base64 chars = 2 bytes)
+  // This avoids a race condition with RNFS.stat() on the new fork
+  const fileSize = Math.floor((encoded.length * 3) / 4);
 
   return {
     uri: `file://${outPath}`,
     width: outW,
     height: outH,
-    fileSize: fileStat.size,
+    fileSize,
   };
 }
