@@ -2,7 +2,7 @@ name: GeoProof — Build Signed APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'agents/**']
   workflow_dispatch:
 
 jobs:
